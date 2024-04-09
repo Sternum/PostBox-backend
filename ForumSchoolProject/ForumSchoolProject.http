@@ -1,0 +1,6 @@
+@ForumSchoolProject_HostAddress = http://localhost:5173
+
+GET {{ForumSchoolProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
