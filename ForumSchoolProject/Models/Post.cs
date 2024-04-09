@@ -1,11 +1,19 @@
-﻿namespace ForumSchoolProject.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace ForumSchoolProject.Models;
+
+public partial class Post
 {
-    public class Post
-    {
-        public int PID { get; set; }
-        public DateTime PostDate { get; set; }
-        public DateTime EditDate { get; set; }
-        public string PostDescription { get; set; }
-        public int UID { get; set; }
-    }
+    public int Pid { get; set; }
+
+    public DateTime PostDate { get; set; }
+
+    public DateTime? EditDate { get; set; }
+
+    public string? PostDescription { get; set; }
+
+    public int Uid { get; set; }
+
+    public virtual User UidNavigation { get; set; } = null!;
 }
