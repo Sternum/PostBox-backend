@@ -15,3 +15,12 @@ public partial class UserGroup
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }
+
+// DTO for creating new user groups and Retrieve user group information
+public class UserGroupDto
+{
+    public int UserGroupId { get; set; }
+    public string Gdescription { get; set; }
+    public string AddPosts { get; set; }
+    public string EditPost { get; set; }
+}
