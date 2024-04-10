@@ -111,7 +111,7 @@ namespace ForumSchoolProject.Controllers
         {
             // TODO YYYY Additional logic to check if the logged-in user is the user being updated or an admin
 
-
+            user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password).Substring(0,50); // TODO YYYY Change if the database will store longer passwords
             _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
             try
             {
