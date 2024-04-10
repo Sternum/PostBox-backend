@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ForumSchoolProject.Controllers
 {
@@ -104,12 +107,18 @@ namespace ForumSchoolProject.Controllers
         }
 
 
-        // Update a user by ID
-        [Authorize] // Requires the user to be authenticated
+        [Authorize]
         [HttpPut("{id}")]
         public ActionResult Update(User user)
         {
             // TODO YYYY Additional logic to check if the logged-in user is the user being updated or an admin
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get logged-in user's ID
+
+            if (userId != user.Uid.ToString() && !User.IsInRole("Admin"))
+            {
+                return Forbid(); // User is neither the account owner nor an admin
+            }
+
 
             user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password).Substring(0,50); // TODO YYYY Change if the database will store longer passwords
             _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
