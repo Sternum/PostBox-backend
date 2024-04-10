@@ -1,4 +1,5 @@
 ﻿using ForumSchoolProject.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -70,29 +71,48 @@ namespace ForumSchoolProject.Controllers
         [HttpPost]
         public ActionResult<User> Create(CreateUserDto createUserDto)
         {
+            var passwordEncryptor = BCryptPasswordEncryptor.Factory.CreateEncryptor();
+            var hashedPassword = passwordEncryptor.Encrypt(createUserDto.Password).Substring(0,50); // TODO YYYY Change if the database will store longer passwords
             var user = new User
             {
                 Name = createUserDto.Name,
                 LastName = createUserDto.LastName,
                 Login = createUserDto.Login,
-                Password = createUserDto.Password,
+                Password = hashedPassword,
                 UserGroupId = createUserDto.UserGroupId
 
             };
 
             _context.Users.Add(user);
-            _context.SaveChanges();
-
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                if (_context.Users.Any(e => e.Login == user.Login))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return CreatedAtAction(nameof(GetById), new { id = user.Uid }, user);
 
         }
 
 
         // Update a user by ID
+        [Authorize] // Requires the user to be authenticated
         [HttpPut("{id}")]
         public ActionResult Update(User user)
         {
-            _context.Entry(user).State = EntityState.Modified;
+            // TODO YYYY Additional logic to check if the logged-in user is the user being updated or an admin
+
+
+            _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
             try
             {
                 _context.SaveChanges();

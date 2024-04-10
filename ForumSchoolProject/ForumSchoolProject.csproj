@@ -16,4 +16,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="BCryptPasswordEncryptor">
+      <HintPath>..\..\BCryptPasswordEncryptor\BCryptPasswordEncryptor\bin\Release\net8.0\BCryptPasswordEncryptor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
