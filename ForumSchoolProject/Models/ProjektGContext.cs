@@ -23,7 +23,7 @@ public partial class ProjektGContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
+        => optionsBuilder.UseSqlServer("Server=projektsan.c7y6w2cc0x8n.eu-north-1.rds.amazonaws.com;Database=ProjektG;User Id=ProjektAPI;Password=Pr0jekt@PI;TrustServerCertificate=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,7 +53,7 @@ public partial class ProjektGContext : DbContext
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.Login).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.Password).HasMaxLength(50);
+            entity.Property(e => e.Password).HasMaxLength(255);
             entity.Property(e => e.UserGroupId).HasColumnName("UserGroupID");
 
             entity.HasOne(d => d.UserGroup).WithMany(p => p.Users)

@@ -25,7 +25,7 @@ builder.Services.AddAuthorization(options =>
     {
         var userGroupId = context.User.FindFirst("UserGroupId")?.Value;
         // Check if the user group ID matches your Admin group ID
-        return userGroupId == "1"; // Example check
+        return userGroupId == "1"; 
     }));
     options.AddPolicy("AdminOrOwner", policy =>
     policy.RequireAssertion(context =>

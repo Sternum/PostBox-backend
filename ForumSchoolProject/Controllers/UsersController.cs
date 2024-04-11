@@ -75,7 +75,7 @@ namespace ForumSchoolProject.Controllers
         public ActionResult<User> Create(CreateUserDto createUserDto)
         {
             var passwordEncryptor = BCryptPasswordEncryptor.Factory.CreateEncryptor();
-            var hashedPassword = passwordEncryptor.Encrypt(createUserDto.Password).Substring(0,50); // TODO YYYY Change if the database will store longer passwords
+            var hashedPassword = passwordEncryptor.Encrypt(createUserDto.Password);
             var user = new User
             {
                 Name = createUserDto.Name,
@@ -120,7 +120,7 @@ namespace ForumSchoolProject.Controllers
             }
 
 
-            user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password).Substring(0,50); // TODO YYYY Change if the database will store longer passwords
+            user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password);
             _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
             try
             {
