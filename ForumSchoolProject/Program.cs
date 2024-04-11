@@ -1,50 +1,83 @@
+using BCryptPasswordEncryptor;
+using ForumSchoolProject.Authorization;
 using ForumSchoolProject.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Dependency injection
+builder.Services.AddScoped<TokenGenerator>();
+builder.Services.AddScoped<IPasswordEncryptor>(serviceProvider =>
+{
+    // Create an instance of BCryptPasswordEncryptor using the factory method
+    return BCryptPasswordEncryptor.Factory.CreateEncryptor();
+});
 
+
+// Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+    // Define the Bearer Authentication scheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    // Ensure that the authorization requirement is applied globally
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+}); 
+
 builder.Services.AddDbContext<ProjektGContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//Add Identity
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<ProjektGContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireAssertion(context =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        var userGroupId = context.User.FindFirst("UserGroupId")?.Value;
-        // Check if the user group ID matches your Admin group ID
-        return userGroupId == "1"; 
-    }));
-    options.AddPolicy("AdminOrOwner", policy =>
-    policy.RequireAssertion(context =>
-    {
-        var user = context.User;
-        var userGroupId = user.FindFirst("UserGroupId")?.Value; // Assuming you store group ID in claims
-        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        // Assuming you pass the user ID as a route parameter named "id"
-        var routeData = context.Resource as Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext;
-        var requestedUserId = routeData?.HttpContext.Request.RouteValues["id"]?.ToString();
-
-        // Check if the user is an admin or the owner of the account
-        return userGroupId == "1" || userId == requestedUserId;
-    }));
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("MySuperSecretKeyWhichIsLongEnoughForHMAC")),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 var app = builder.Build();
-
+app.UseAuthentication();
+app.UseAuthorization();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -54,8 +87,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+
 
 app.MapControllers();
 

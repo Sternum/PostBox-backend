@@ -141,6 +141,7 @@ namespace ForumSchoolProject.Controllers
         }
 
         // Delete a user by ID
+        [Authorize]
         [HttpDelete("{id}")]
         public ActionResult<User> Delete(int id)
         {
