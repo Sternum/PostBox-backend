@@ -15,7 +15,7 @@ namespace ForumSchoolProject.Authorization
         public bool IsAdmin()
         {
             var currentUser = _httpContextAccessor.HttpContext?.User;
-            return currentUser?.FindFirst(ClaimTypes.Role)?.Value == "Admin";
+            return currentUser?.FindFirst(ClaimTypes.Role)?.Value == "1";
         }
         public bool IsOwnerOfPost(int postUid)
         {

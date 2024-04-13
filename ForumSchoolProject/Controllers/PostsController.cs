@@ -58,6 +58,7 @@ namespace ForumSchoolProject.Controllers
 
             return Ok(postDto);
         }
+        [Authorize]
         [HttpPost]
         public ActionResult<Post> Create(CreatePostDto postDto)
         {
@@ -75,9 +76,14 @@ namespace ForumSchoolProject.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = generatedPid }, post);
         }
+        [Authorize]
         [HttpPut]
         public ActionResult Update(Post post)
         {
+            if (!_authorizationHelperService.IsAdminOrOwnerOfPost(post.Uid))
+            {
+                return Unauthorized();
+            }
             _context.Entry(post).State = EntityState.Modified;
             try
             {
@@ -106,7 +112,7 @@ namespace ForumSchoolProject.Controllers
             {
                 return NotFound();
             }
-            if(!_authorizationHelperService.IsAdminOrOwnerOfPost(post.Pid))
+            if(!_authorizationHelperService.IsAdminOrOwnerOfPost(post.Uid))
             {
                 return Unauthorized();
             }
