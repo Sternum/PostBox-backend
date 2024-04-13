@@ -79,6 +79,10 @@ namespace ForumSchoolProject.Controllers
         [HttpPost]
         public ActionResult<User> Create(CreateUserDto createUserDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);  // Returns detailed validation errors
+            }
             var passwordEncryptor = BCryptPasswordEncryptor.Factory.CreateEncryptor();
             var hashedPassword = passwordEncryptor.Encrypt(createUserDto.Password);
             var user = new User
@@ -116,7 +120,12 @@ namespace ForumSchoolProject.Controllers
         [HttpPut("{id}")]
         public ActionResult Update(User user)
         {
-            if(!_authorizationHelperService.IsAdminOrOwner(user.Uid))
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);  // Returns detailed validation errors
+            }
+
+            if (!_authorizationHelperService.IsAdminOrOwner(user.Uid) )
             {
                 return Forbid();
             }

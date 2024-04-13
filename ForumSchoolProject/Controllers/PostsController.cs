@@ -62,6 +62,10 @@ namespace ForumSchoolProject.Controllers
         [HttpPost]
         public ActionResult<Post> Create(CreatePostDto postDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var post = new Post
             {
                 PostDate = postDto.PostDate,

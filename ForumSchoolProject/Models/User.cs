@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ForumSchoolProject.Models;
 
@@ -24,10 +25,19 @@ public partial class User
 // DTO for creating new users
 public class CreateUserDto
 {
+    [Required(ErrorMessage = "First name is required.")]
     public string Name { get; set; }
+
+    [Required(ErrorMessage = "Last name is required.")]
     public string LastName { get; set; }
+
+    [Required(ErrorMessage = "Login is required.")]
     public string Login { get; set; }
+
+    [Required(ErrorMessage = "Password is required.")]
     public string Password { get; set; }
+
+    [Required(ErrorMessage = "User group ID is required.")]
     public int UserGroupId { get; set; }
 }
 

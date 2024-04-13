@@ -25,6 +25,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public ActionResult<string> Login([FromBody] LoginModel login)
     {
+        if (!ModelState.IsValid)
+        {
+            // Returns a 400 Bad Request response with validation errors
+            return BadRequest(ModelState);
+        }
         // Example of user validation. Replace with your actual user validation logic
         if (ValidateUser(login))
         {
@@ -39,6 +44,12 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public ActionResult<string> Register([FromBody] RegisterModel register)
     {
+        if (!ModelState.IsValid)
+        {
+            // Returns a 400 Bad Request response with validation errors
+            return BadRequest(ModelState);
+        }
+
         if (_context.Users.Any(u => u.Login == register.Username))
         {
             return BadRequest("Username already exists");
