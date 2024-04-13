@@ -28,11 +28,30 @@ public class AuthController : ControllerBase
         // Example of user validation. Replace with your actual user validation logic
         if (ValidateUser(login))
         {
-            var token = _tokenGenerator.GenerateJwtToken(login.Username);
+            var user = _context.Users.Where(u => u.Login == login.Username).FirstOrDefault();
+
+            var token = _tokenGenerator.GenerateJwtToken(user);
             return Ok(token);
         }
 
         return Unauthorized("Invalid credentials");
+    }
+    [HttpPost("register")]
+    public ActionResult<string> Register([FromBody] RegisterModel register)
+    {
+        if (_context.Users.Any(u => u.Login == register.Username))
+        {
+            return BadRequest("Username already exists");
+        }
+
+        var hashedPassword = _passwordEncryptor.Encrypt(register.Password);
+        var user = new User { Login = register.Username, Password = hashedPassword, LastName = register.LastName, Name = register.Name, UserGroupId =  2};
+
+        _context.Users.Add(user);
+        _context.SaveChanges();
+
+        var token = _tokenGenerator.GenerateJwtToken(user);
+        return Ok(new { Token = token, Message = "Registration successful" });
     }
 
     private bool ValidateUser(LoginModel login)
@@ -52,7 +71,14 @@ public class AuthController : ControllerBase
 
 
 }
-
+public class RegisterModel
+{
+    public string Username { get; set; }
+    public string Password { get; set; }
+    
+    public string Name { get; set; }
+    public string LastName { get; set; }
+}
 public class LoginModel
 {
     public string Username { get; set; }

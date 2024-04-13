@@ -18,6 +18,25 @@ builder.Services.AddScoped<IPasswordEncryptor>(serviceProvider =>
     // Create an instance of BCryptPasswordEncryptor using the factory method
     return BCryptPasswordEncryptor.Factory.CreateEncryptor();
 });
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHelperService, AuthorizationHelperService>();
+
+
+builder.Services.AddDbContext<ProjektGContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("MySuperSecretKeyWhichIsLongEnoughForHMAC")),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+
 
 
 // Add services to the container.
@@ -60,20 +79,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 }); 
 
-builder.Services.AddDbContext<ProjektGContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("MySuperSecretKeyWhichIsLongEnoughForHMAC")),
-            ValidateIssuer = false,
-            ValidateAudience = false
-        };
-    });
 
 var app = builder.Build();
 app.UseAuthentication();

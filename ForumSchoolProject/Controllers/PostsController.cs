@@ -1,6 +1,9 @@
-﻿using ForumSchoolProject.Models;
+﻿using ForumSchoolProject.Authorization;
+using ForumSchoolProject.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ForumSchoolProject.Controllers
 {
@@ -10,13 +13,17 @@ namespace ForumSchoolProject.Controllers
     {
         ProjektGContext _context;
         ILogger<PostsController> _logger;
+        IAuthorizationHelperService _authorizationHelperService;
 
-        public PostsController(ProjektGContext context, ILogger<PostsController> logger)
+
+        public PostsController(ProjektGContext context, ILogger<PostsController> logger, IAuthorizationHelperService authorizationHelperService)
         {
             _context = context;
             _logger = logger;
+            _authorizationHelperService = authorizationHelperService;
         }
         [HttpGet]
+        [AllowAnonymous]
         public ActionResult<GetPostDto> Get()
         {
             IQueryable<GetPostDto> query = _context.Posts.Select(p => new GetPostDto
@@ -32,6 +39,7 @@ namespace ForumSchoolProject.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public ActionResult<GetPostDto> GetById(int id)
         {
             var post = _context.Posts.Find(id);
@@ -89,7 +97,7 @@ namespace ForumSchoolProject.Controllers
             return NoContent();
         }
 
-
+        [Authorize]
         [HttpDelete]
         public ActionResult<GetPostDto> Delete(int id)
         {
@@ -98,6 +106,11 @@ namespace ForumSchoolProject.Controllers
             {
                 return NotFound();
             }
+            if(!_authorizationHelperService.IsAdminOrOwnerOfPost(post.Pid))
+            {
+                return Unauthorized();
+            }
+
             _context.Posts.Remove(post);
             _context.SaveChanges();
 
