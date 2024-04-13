@@ -30,9 +30,9 @@ namespace ForumSchoolProject.Controllers
         // Combined Get and Search into a single method
         [AllowAnonymous]
         [HttpGet]
-        public ActionResult<IEnumerable<UserDto>> Get(string? name)
+        public ActionResult<IEnumerable<GetUserDto>> Get(string? name)
         {
-            IQueryable<UserDto> query = _context.Users.Select(u => new UserDto
+            IQueryable<GetUserDto> query = _context.Users.Select(u => new GetUserDto
             {
                 Name = u.Name,
                 LastName = u.LastName,
@@ -57,14 +57,14 @@ namespace ForumSchoolProject.Controllers
         // Get a single user by ID
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public ActionResult<UserDto> GetById(int id)
+        public ActionResult<GetUserDto> GetById(int id)
         {
             var user = _context.Users.Find(id);
             if (user == null)
             {
                 return NotFound();
             }
-            UserDto userDto = new UserDto
+            GetUserDto userDto = new GetUserDto
             {
                 Name = user.Name,
                 LastName = user.LastName,

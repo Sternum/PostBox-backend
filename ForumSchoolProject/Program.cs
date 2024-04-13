@@ -48,6 +48,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    options.SchemaFilter<IgnoreDtoSchemaFilter>();
 
     // Define the Bearer Authentication scheme
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

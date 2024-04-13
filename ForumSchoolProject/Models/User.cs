@@ -42,7 +42,7 @@ public class CreateUserDto
 }
 
 // DTO for retrieving user information (GET requests)
-public class UserDto
+public class GetUserDto
 {
     public string Name { get; set; }
     public string LastName { get; set; }
