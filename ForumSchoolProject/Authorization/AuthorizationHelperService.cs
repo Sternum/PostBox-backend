@@ -17,14 +17,16 @@ namespace ForumSchoolProject.Authorization
             var currentUser = _httpContextAccessor.HttpContext?.User;
             return currentUser?.FindFirst(ClaimTypes.Role)?.Value == "1";
         }
-        public bool IsOwnerOfPost(int postUid)
+        public bool IsOwner(int postUid)
         {
             var currentUser = _httpContextAccessor.HttpContext?.User;
             return currentUser?.FindFirst(ClaimTypes.NameIdentifier)?.Value == postUid.ToString();
         }
-        public bool IsAdminOrOwnerOfPost(int postUid)
+        public bool IsAdminOrOwner(int uId)
         {
-            return IsAdmin() || IsOwnerOfPost(postUid);
+            return IsAdmin() || IsOwner(uId);
         }
+
+
     }
 }

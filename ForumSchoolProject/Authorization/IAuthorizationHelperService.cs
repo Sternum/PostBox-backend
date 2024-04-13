@@ -3,7 +3,7 @@
     public interface IAuthorizationHelperService
     {
         bool IsAdmin();
-        bool IsAdminOrOwnerOfPost(int postUid);
-        bool IsOwnerOfPost(int postUid);
+        bool IsAdminOrOwner(int postUid);
+        bool IsOwner(int postUid);
     }
 }

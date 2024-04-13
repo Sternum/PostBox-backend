@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using ForumSchoolProject.Authorization;
 
 namespace ForumSchoolProject.Controllers
 {
@@ -17,14 +18,17 @@ namespace ForumSchoolProject.Controllers
     {
         private readonly ILogger<UsersController> _logger;
         private readonly ProjektGContext _context;
+        IAuthorizationHelperService _authorizationHelperService;
 
-        public UsersController(ILogger<UsersController> logger, ProjektGContext context)
+        public UsersController(ILogger<UsersController> logger, ProjektGContext context, IAuthorizationHelperService authorizationHelperService)
         {
             _logger = logger;
             _context = context;
+            _authorizationHelperService = authorizationHelperService;
         }
 
-        // Combine Get and Search into a single method
+        // Combined Get and Search into a single method
+        [AllowAnonymous]
         [HttpGet]
         public ActionResult<IEnumerable<UserDto>> Get(string? name)
         {
@@ -50,8 +54,8 @@ namespace ForumSchoolProject.Controllers
 
             return Ok(users);
         }
-
         // Get a single user by ID
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public ActionResult<UserDto> GetById(int id)
         {
@@ -71,6 +75,7 @@ namespace ForumSchoolProject.Controllers
         }
 
         // Create a new user
+        [AllowAnonymous]
         [HttpPost]
         public ActionResult<User> Create(CreateUserDto createUserDto)
         {
@@ -111,14 +116,10 @@ namespace ForumSchoolProject.Controllers
         [HttpPut("{id}")]
         public ActionResult Update(User user)
         {
-            // TODO YYYY Additional logic to check if the logged-in user is the user being updated or an admin
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get logged-in user's ID
-
-            if (userId != user.Uid.ToString() && !User.IsInRole("Admin"))
+            if(!_authorizationHelperService.IsAdminOrOwner(user.Uid))
             {
-                return Forbid(); // User is neither the account owner nor an admin
+                return Forbid();
             }
-
 
             user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password);
             _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
@@ -150,7 +151,10 @@ namespace ForumSchoolProject.Controllers
             {
                 return NotFound();
             }
-
+            if (!_authorizationHelperService.IsAdminOrOwner(user.Uid))
+            {
+                return Forbid();
+            }
             _context.Users.Remove(user);
             _context.SaveChanges();
 

@@ -80,7 +80,7 @@ namespace ForumSchoolProject.Controllers
         [HttpPut]
         public ActionResult Update(Post post)
         {
-            if (!_authorizationHelperService.IsAdminOrOwnerOfPost(post.Uid))
+            if (!_authorizationHelperService.IsAdminOrOwner(post.Uid))
             {
                 return Unauthorized();
             }
@@ -112,7 +112,7 @@ namespace ForumSchoolProject.Controllers
             {
                 return NotFound();
             }
-            if(!_authorizationHelperService.IsAdminOrOwnerOfPost(post.Uid))
+            if(!_authorizationHelperService.IsAdminOrOwner(post.Uid))
             {
                 return Unauthorized();
             }
