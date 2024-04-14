@@ -31,4 +31,8 @@ public class UserService : IUserService
     {
         return _passwordEncryptor.Encrypt(password);
     }
+    public async Task<User> GetUserAsync(string username)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Login == username);
+    }
 }

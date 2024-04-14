@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "apis1": {
+      "apiEndpoint": "https://forumschoolprojectapi.azure-api.net/",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/ForumSchoolProjectapi/apis/ForumSchoolProject",
+      "type": "apis.azure"
+    },
+    "identityapp1": {
+      "connectionInfo": "App registration: JaOlown, Tenant: \"i-sys\" Integracja Systemów Sp. z o.o. (i-sys.pl - Microsoft Entra ID)",
+      "type": "identityapp.default"
+    }
+  }
+}

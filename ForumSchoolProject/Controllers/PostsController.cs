@@ -1,5 +1,6 @@
 ﻿using ForumSchoolProject.Authorization;
 using ForumSchoolProject.Models;
+using ForumSchoolProject.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +15,14 @@ namespace ForumSchoolProject.Controllers
         ProjektGContext _context;
         ILogger<PostsController> _logger;
         IAuthorizationHelperService _authorizationHelperService;
+        IUserService _userService;
 
-
-        public PostsController(ProjektGContext context, ILogger<PostsController> logger, IAuthorizationHelperService authorizationHelperService)
+        public PostsController(ProjektGContext context, ILogger<PostsController> logger, IAuthorizationHelperService authorizationHelperService, IUserService userService)
         {
             _context = context;
             _logger = logger;
             _authorizationHelperService = authorizationHelperService;
+            _userService = userService;
         }
 
 
@@ -71,12 +73,13 @@ namespace ForumSchoolProject.Controllers
             {
                 return BadRequest(ModelState);
             }
+            var userIdfromClaims = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
             var post = new Post
             {
-                PostDate = postDto.PostDate,
-                EditDate = postDto.EditDate,
+                PostDate = DateTime.Now,
                 PostDescription = postDto.PostDescription,
-                Uid = postDto.Uid
+                Uid = userIdfromClaims
             };
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
@@ -86,15 +89,19 @@ namespace ForumSchoolProject.Controllers
             return CreatedAtAction(nameof(GetById), new { id = generatedPid }, post);
         }
 
+
         [Authorize]
         [HttpPut]
-        public async Task<ActionResult> Update(Post post)
+        public async Task<ActionResult> Update(int postId)
         {
+            var post = await _context.Posts.FindAsync(postId);
             if (!_authorizationHelperService.IsAdminOrOwner(post.Uid))
             {
                 return Unauthorized();
             }
+            post.EditDate = DateTime.Now;
             _context.Entry(post).State = EntityState.Modified;
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -126,7 +133,6 @@ namespace ForumSchoolProject.Controllers
             {
                 return Unauthorized();
             }
-
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
             return Ok();

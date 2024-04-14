@@ -6,5 +6,6 @@ namespace ForumSchoolProject.Services.Interfaces
     {
         Task<bool> ValidateUserAsync(LoginModel login);
         Task<string> EncryptPassword(string password);
+        Task<User> GetUserAsync(string username);
     }
 }
