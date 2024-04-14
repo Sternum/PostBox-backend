@@ -30,7 +30,7 @@ namespace ForumSchoolProject.Controllers
         // Combined Get and Search into a single method
         [AllowAnonymous]
         [HttpGet]
-        public ActionResult<IEnumerable<GetUserDto>> Get(string? name)
+        public async Task<ActionResult<IEnumerable<GetUserDto>>> Get(string? name)
         {
             IQueryable<GetUserDto> query = _context.Users.Select(u => new GetUserDto
             {
@@ -55,7 +55,7 @@ namespace ForumSchoolProject.Controllers
         // Get a single user by ID
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public ActionResult<GetUserDto> GetById(int id)
+        public async Task<ActionResult<GetUserDto>> GetById(int id)
         {
             var user = _context.Users.Find(id);
             if (user == null)
@@ -75,7 +75,7 @@ namespace ForumSchoolProject.Controllers
         // Create a new user
         [AllowAnonymous]
         [HttpPost]
-        public ActionResult<User> Create(CreateUserDto createUserDto)
+        public async Task <ActionResult<User>> Create(CreateUserDto createUserDto)
         {
             if (!ModelState.IsValid)
             {
@@ -89,14 +89,12 @@ namespace ForumSchoolProject.Controllers
                 LastName = createUserDto.LastName,
                 Login = createUserDto.Login,
                 Password = hashedPassword,
-                UserGroupId = createUserDto.UserGroupId
-
+                UserGroupId = 2
             };
-
             _context.Users.Add(user);
             try
             {
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
@@ -110,27 +108,47 @@ namespace ForumSchoolProject.Controllers
                 }
             }
             return CreatedAtAction(nameof(GetById), new { id = user.Uid }, user);
-
         }
-
 
         [Authorize]
         [HttpPut("{id}")]
-        public ActionResult Update(User user)
+        public async Task<ActionResult> Update(int userId, UpdateUserDto updateUserDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);  // Returns detailed validation errors
             }
-            if (!_authorizationHelperService.IsAdminOrOwner(user.Uid) )
+
+            var user = await _context.Users.FindAsync(userId);
+            if (!_authorizationHelperService.IsAdminOrOwner(user.Uid))
             {
                 return Forbid();
             }
-            user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password);
-            _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
+
+            // Update only the fields that are provided in the updateUserDto
+            if (!String.IsNullOrEmpty(updateUserDto.Name))
+            {
+                user.Name = updateUserDto.Name;
+            }
+            if (!String.IsNullOrEmpty(updateUserDto.LastName))
+            {
+                user.LastName = updateUserDto.LastName;
+            }
+            if (!String.IsNullOrEmpty(updateUserDto.Login))
+            {
+                user.Login = updateUserDto.Login;
+            }
+            if (!String.IsNullOrEmpty(updateUserDto.Password))
+            {
+                // Only update the password if it's provided
+                user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(updateUserDto.Password);
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+
             try
             {
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -143,13 +161,49 @@ namespace ForumSchoolProject.Controllers
                     throw;
                 }
             }
+
             return NoContent();
         }
 
+        [Authorize] // Only Admins should be able to make users admins
+        [HttpPost("{id}/makeAdmin")]
+        public async Task<ActionResult> MakeAdmin(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                   return BadRequest(ModelState);  // Returns detailed validation errors
+            }
+            if (!_authorizationHelperService.IsAdmin())
+            {
+                return Forbid();
+            }
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            user.UserGroupId = 1;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Users.Any(e => e.Uid == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Ok($"User {user.Name} {user.LastName} has been promoted to admin.");
+        }
         // Delete a user by ID
         [Authorize]
         [HttpDelete("{id}")]
-        public ActionResult<User> Delete(int id)
+        public async Task <ActionResult<User>> Delete(int id)
         {
             var user = _context.Users.Find(id);
             if (user == null)
@@ -161,7 +215,7 @@ namespace ForumSchoolProject.Controllers
                 return Forbid();
             }
             _context.Users.Remove(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return Ok(user);
         }
     }

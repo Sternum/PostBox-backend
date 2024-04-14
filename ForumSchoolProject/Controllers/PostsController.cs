@@ -92,7 +92,7 @@ namespace ForumSchoolProject.Controllers
 
         [Authorize]
         [HttpPut]
-        public async Task<ActionResult> Update(int postId)
+        public async Task<ActionResult> Update(int postId, string description)
         {
             var post = await _context.Posts.FindAsync(postId);
             if (!_authorizationHelperService.IsAdminOrOwner(post.Uid))
@@ -100,6 +100,7 @@ namespace ForumSchoolProject.Controllers
                 return Unauthorized();
             }
             post.EditDate = DateTime.Now;
+            post.PostDescription = description;
             _context.Entry(post).State = EntityState.Modified;
 
             try

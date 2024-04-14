@@ -36,9 +36,6 @@ public class CreateUserDto
 
     [Required(ErrorMessage = "Password is required.")]
     public string Password { get; set; }
-
-    [Required(ErrorMessage = "User group ID is required.")]
-    public int UserGroupId { get; set; }
 }
 
 // DTO for retrieving user information (GET requests)
@@ -48,4 +45,13 @@ public class GetUserDto
     public string LastName { get; set; }
     public string Login { get; set; }
     public int UserGroupId { get; set; }
+}
+
+public class UpdateUserDto
+{
+    public string Name { get; set; }
+    public string LastName { get; set; }
+    public string Login { get; set; }
+    public string Password { get; set; }
+
 }
