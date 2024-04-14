@@ -1,6 +1,7 @@
 using BCryptPasswordEncryptor;
 using ForumSchoolProject.Authorization;
 using ForumSchoolProject.Models;
+using ForumSchoolProject.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +19,10 @@ builder.Services.AddScoped<IPasswordEncryptor>(serviceProvider =>
     // Create an instance of BCryptPasswordEncryptor using the factory method
     return BCryptPasswordEncryptor.Factory.CreateEncryptor();
 });
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHelperService, AuthorizationHelperService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<ProjektGContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -39,16 +40,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 
 
-// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-    options.SchemaFilter<IgnoreDtoSchemaFilter>();
 
     // Define the Bearer Authentication scheme
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

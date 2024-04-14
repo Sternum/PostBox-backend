@@ -22,32 +22,36 @@ namespace ForumSchoolProject.Controllers
             _logger = logger;
             _authorizationHelperService = authorizationHelperService;
         }
+
+
         [HttpGet]
         [AllowAnonymous]
-        public ActionResult<GetPostDto> Get()
+        public async Task<ActionResult<List<GetPostDto>>> Get()
         {
-            IQueryable<GetPostDto> query = _context.Posts.Select(p => new GetPostDto
-            {
-                Pid = p.Pid,
-                PostDate = p.PostDate,
-                EditDate = p.EditDate,
-                PostDescription = p.PostDescription,
-                Uid = p.Uid
-            });
-            var posts = query.ToList();
+            var posts = await _context.Posts
+                .Select(p => new GetPostDto
+                {
+                    Pid = p.Pid,
+                    PostDate = p.PostDate,
+                    EditDate = p.EditDate,
+                    PostDescription = p.PostDescription,
+                    Uid = p.Uid
+                })
+                .ToListAsync();
+
             return Ok(posts);
         }
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public ActionResult<GetPostDto> GetById(int id)
+        public async Task<ActionResult<GetPostDto>> GetById(int id)
         {
-            var post = _context.Posts.Find(id);
+            var post = await _context.Posts.FindAsync(id);
             if (post == null)
             {
                 return NotFound();
             }
-            GetPostDto postDto = new GetPostDto
+            var postDto = new GetPostDto
             {
                 Pid = post.Pid,
                 PostDate = post.PostDate,
@@ -58,9 +62,10 @@ namespace ForumSchoolProject.Controllers
 
             return Ok(postDto);
         }
+
         [Authorize]
         [HttpPost]
-        public ActionResult<Post> Create(CreatePostDto postDto)
+        public async Task<ActionResult<Post>> Create(CreatePostDto postDto)
         {
             if (!ModelState.IsValid)
             {
@@ -74,15 +79,16 @@ namespace ForumSchoolProject.Controllers
                 Uid = postDto.Uid
             };
             _context.Posts.Add(post);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             int generatedPid = post.Pid;
 
             return CreatedAtAction(nameof(GetById), new { id = generatedPid }, post);
         }
+
         [Authorize]
         [HttpPut]
-        public ActionResult Update(Post post)
+        public async Task<ActionResult> Update(Post post)
         {
             if (!_authorizationHelperService.IsAdminOrOwner(post.Uid))
             {
@@ -91,7 +97,7 @@ namespace ForumSchoolProject.Controllers
             _context.Entry(post).State = EntityState.Modified;
             try
             {
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -108,24 +114,22 @@ namespace ForumSchoolProject.Controllers
         }
 
         [Authorize]
-        [HttpDelete]
-        public ActionResult<GetPostDto> Delete(int id)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<GetPostDto>> Delete(int id)
         {
-            var post = _context.Posts.Find(id);
+            var post = await _context.Posts.FindAsync(id);
             if (post == null)
             {
                 return NotFound();
             }
-            if(!_authorizationHelperService.IsAdminOrOwner(post.Uid))
+            if (!_authorizationHelperService.IsAdminOrOwner(post.Uid))
             {
                 return Unauthorized();
             }
 
             _context.Posts.Remove(post);
-            _context.SaveChanges();
-
+            await _context.SaveChangesAsync();
             return Ok();
         }
-
     }
 }

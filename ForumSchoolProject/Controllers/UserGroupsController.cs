@@ -19,39 +19,41 @@ namespace ForumSchoolProject.Controllers
             _logger = logger;
             _context = context;
         }
+
         [HttpGet]
-        public ActionResult<IEnumerable<UserGroupDto>> Get()
+        public async Task<ActionResult<IEnumerable<UserGroupDto>>> Get()
         {
-            IQueryable<UserGroupDto> query = _context.UserGroups.Select(ug => new UserGroupDto
-            {
-                UserGroupId = ug.UserGroupId,
-                Gdescription = ug.Gdescription,
-                AddPosts = ug.AddPosts,
-                EditPost = ug.EditPost
-            });
-            if (!query.Any())
+            var userGroups = await _context.UserGroups
+                .Select(ug => new UserGroupDto
+                {
+                    UserGroupId = ug.UserGroupId,
+                    Gdescription = ug.Gdescription,
+                    AddPosts = ug.AddPosts,
+                    EditPost = ug.EditPost
+                })
+                .ToListAsync();
+            if (!userGroups.Any())
             {
                 return NotFound();
             }
-            return Ok(query.ToList());
-
+            return Ok(userGroups);
         }
+
         [HttpGet("{id}")]
-        public ActionResult<UserGroupDto> GetById(int id)
+        public async Task<ActionResult<UserGroupDto>> GetById(int id)
         {
-            var userGroup = _context.UserGroups.Find(id);
+            var userGroup = await _context.UserGroups.FindAsync(id);
             if (userGroup == null)
             {
                 return NotFound();
             }
-            UserGroupDto userGroupDto = new UserGroupDto
+            var userGroupDto = new UserGroupDto
             {
                 UserGroupId = userGroup.UserGroupId,
                 Gdescription = userGroup.Gdescription,
                 AddPosts = userGroup.AddPosts,
                 EditPost = userGroup.EditPost
             };
-
             return Ok(userGroupDto);
         }
     }

@@ -6,6 +6,9 @@ using System.Text;
 using ForumSchoolProject.Models;
 using ForumSchoolProject.Authorization;
 using BCryptPasswordEncryptor;
+using Microsoft.EntityFrameworkCore;
+using ForumSchoolProject.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 [Route("[controller]")]
 [ApiController]
@@ -13,27 +16,27 @@ public class AuthController : ControllerBase
 {
     private readonly ProjektGContext _context;
     private readonly TokenGenerator _tokenGenerator;
-    private readonly IPasswordEncryptor _passwordEncryptor;
+    private readonly IUserService _userService;
 
-    public AuthController(ProjektGContext context , TokenGenerator tokenGenerator, IPasswordEncryptor passwordEncryptor)
+    public AuthController(ProjektGContext context , TokenGenerator tokenGenerator, IUserService userService)
     {
         _context = context;
         _tokenGenerator = tokenGenerator;
-        _passwordEncryptor = passwordEncryptor;
+        _userService = userService;
     }
-
+    [AllowAnonymous]
     [HttpPost("login")]
-    public ActionResult<string> Login([FromBody] LoginModel login)
+    public async Task<IActionResult> Login([FromBody] LoginModel login)
     {
         if (!ModelState.IsValid)
         {
             // Returns a 400 Bad Request response with validation errors
             return BadRequest(ModelState);
         }
-        // Example of user validation. Replace with your actual user validation logic
-        if (ValidateUser(login))
+
+        if (await _userService.ValidateUserAsync(login))
         {
-            var user = _context.Users.Where(u => u.Login == login.Username).FirstOrDefault();
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login.Username);
 
             var token = _tokenGenerator.GenerateJwtToken(user);
             return Ok(token);
@@ -41,8 +44,10 @@ public class AuthController : ControllerBase
 
         return Unauthorized("Invalid credentials");
     }
+
+    [AllowAnonymous]
     [HttpPost("register")]
-    public ActionResult<string> Register([FromBody] RegisterModel register)
+    public async Task<IActionResult> Register([FromBody] RegisterModel register)
     {
         if (!ModelState.IsValid)
         {
@@ -50,36 +55,19 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        if (_context.Users.Any(u => u.Login == register.Username))
+        if (await _context.Users.AnyAsync(u => u.Login == register.Username))
         {
             return BadRequest("Username already exists");
         }
 
-        var hashedPassword = _passwordEncryptor.Encrypt(register.Password);
-        var user = new User { Login = register.Username, Password = hashedPassword, LastName = register.LastName, Name = register.Name, UserGroupId =  2};
+        var hashedPassword = await _userService.EncryptPassword(register.Password);
+        var user = new User { Login = register.Username, Password = hashedPassword, LastName = register.LastName, Name = register.Name, UserGroupId = 2 };
 
         _context.Users.Add(user);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         var token = _tokenGenerator.GenerateJwtToken(user);
         return Ok(new { Token = token, Message = "Registration successful" });
     }
-
-    private bool ValidateUser(LoginModel login)
-    {
-        // Here you should check the provided credentials against your user store
-        // For demo purposes, let's assume any user is valid if they provide a password
-        if (!string.IsNullOrEmpty(login.Username) && !string.IsNullOrEmpty(login.Password))
-        { 
-            var user = _context.Users.Where(u => u.Login == login.Username).FirstOrDefault();
-            return _passwordEncryptor.Verify(login.Password, user.Password);
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-
 }
 

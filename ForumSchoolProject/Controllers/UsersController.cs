@@ -44,16 +44,14 @@ namespace ForumSchoolProject.Controllers
             {
                 query = query.Where(u => u.Name.Contains(name) || u.LastName.Contains(name));
             }
-
             var users = query.ToList();
-
             if (!users.Any())
             {
                 return NotFound();
             }
-
             return Ok(users);
         }
+
         // Get a single user by ID
         [AllowAnonymous]
         [HttpGet("{id}")]
@@ -124,12 +122,10 @@ namespace ForumSchoolProject.Controllers
             {
                 return BadRequest(ModelState);  // Returns detailed validation errors
             }
-
             if (!_authorizationHelperService.IsAdminOrOwner(user.Uid) )
             {
                 return Forbid();
             }
-
             user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(user.Password);
             _context.Entry(user).State = EntityState.Modified;  // TODO YYYY if password is changed it has to be hashed again
             try
@@ -166,7 +162,6 @@ namespace ForumSchoolProject.Controllers
             }
             _context.Users.Remove(user);
             _context.SaveChanges();
-
             return Ok(user);
         }
     }
