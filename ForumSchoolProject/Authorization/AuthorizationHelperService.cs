@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ForumSchoolProject.Enums;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace ForumSchoolProject.Authorization
@@ -15,7 +16,7 @@ namespace ForumSchoolProject.Authorization
         public bool IsAdmin()
         {
             var currentUser = _httpContextAccessor.HttpContext?.User;
-            return currentUser?.FindFirst(ClaimTypes.Role)?.Value == "1";
+            return currentUser?.FindFirst(ClaimTypes.Role)?.Value == UserRolesEnum.Admin.ToString();
         }
         public bool IsOwner(int postUid)
         {
