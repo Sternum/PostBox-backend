@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
     }
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginModel login)
+    public async Task<IActionResult> Login([FromBody] LoginUserDto login)
     {
         if (!ModelState.IsValid)
         {
@@ -45,7 +45,7 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModel register)
+    public async Task<IActionResult> Register([FromBody] RegisterUserDto register)
     {
         if (!ModelState.IsValid)
         {

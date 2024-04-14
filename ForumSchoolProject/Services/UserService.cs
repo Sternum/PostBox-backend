@@ -20,7 +20,7 @@ public class UserService : IUserService
         _passwordEncryptor = passwordEncryptor;
     }
 
-    public async Task<bool> ValidateUserAsync(LoginModel login)
+    public async Task<bool> ValidateUserAsync(LoginUserDto login)
     {
         if (string.IsNullOrEmpty(login.Username) || string.IsNullOrEmpty(login.Password))
             return false;

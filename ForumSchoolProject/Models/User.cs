@@ -46,6 +46,28 @@ public class GetUserDto
     public string Login { get; set; }
     public int UserGroupId { get; set; }
 }
+public class RegisterUserDto
+{
+    [Required(ErrorMessage = "Username is required.")]
+    public string Username { get; set; }
+
+    [Required(ErrorMessage = "Password is required.")]
+    public string Password { get; set; }
+
+    [Required(ErrorMessage = "Name is required.")]
+    public string Name { get; set; }
+
+    [Required(ErrorMessage = "Last name is required.")]
+    public string LastName { get; set; }
+}
+public class LoginUserDto
+{
+    [Required(ErrorMessage = "Username is required.")]
+    public string Username { get; set; }
+
+    [Required(ErrorMessage = "Password is required.")]
+    public string Password { get; set; }
+}
 
 public class UpdateUserDto
 {
