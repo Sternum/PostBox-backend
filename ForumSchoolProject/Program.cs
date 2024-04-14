@@ -15,7 +15,6 @@ using Microsoft.Identity.Web;
 var builder = WebApplication.CreateBuilder(args);
 
 // Dependency injection
-builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<IPasswordEncryptor>(serviceProvider =>
 {
     // Create an instance of BCryptPasswordEncryptor using the factory method
@@ -27,6 +26,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<ProjektGContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -34,7 +34,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("MySuperSecretKeyWhichIsLongEnoughForHMAC")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
             ValidateIssuer = false,
             ValidateAudience = false
         };

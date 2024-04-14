@@ -15,13 +15,11 @@ using Microsoft.AspNetCore.Authorization;
 public class AuthController : ControllerBase
 {
     private readonly ProjektGContext _context;
-    private readonly TokenGenerator _tokenGenerator;
     private readonly IUserService _userService;
 
-    public AuthController(ProjektGContext context , TokenGenerator tokenGenerator, IUserService userService)
+    public AuthController(ProjektGContext context , IUserService userService)
     {
         _context = context;
-        _tokenGenerator = tokenGenerator;
         _userService = userService;
     }
     [AllowAnonymous]
@@ -38,7 +36,7 @@ public class AuthController : ControllerBase
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login.Username);
 
-            var token = _tokenGenerator.GenerateJwtToken(user);
+            var token = _userService.GenerateJwtToken(user);
             return Ok(token);
         }
 
@@ -66,7 +64,7 @@ public class AuthController : ControllerBase
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        var token = _tokenGenerator.GenerateJwtToken(user);
+        var token = _userService.GenerateJwtToken(user);
         return Ok(new { Token = token, Message = "Registration successful" });
     }
 }

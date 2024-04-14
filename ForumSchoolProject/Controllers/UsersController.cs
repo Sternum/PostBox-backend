@@ -112,58 +112,66 @@ namespace ForumSchoolProject.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int userId, UpdateUserDto updateUserDto)
+        public async Task<ActionResult> Update(int id, UpdateUserDto updateUserDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);  // Returns detailed validation errors
-            }
-
-            var user = await _context.Users.FindAsync(userId);
-            if (!_authorizationHelperService.IsAdminOrOwner(user.Uid))
-            {
-                return Forbid();
-            }
-
-            // Update only the fields that are provided in the updateUserDto
-            if (!String.IsNullOrEmpty(updateUserDto.Name))
-            {
-                user.Name = updateUserDto.Name;
-            }
-            if (!String.IsNullOrEmpty(updateUserDto.LastName))
-            {
-                user.LastName = updateUserDto.LastName;
-            }
-            if (!String.IsNullOrEmpty(updateUserDto.Login))
-            {
-                user.Login = updateUserDto.Login;
-            }
-            if (!String.IsNullOrEmpty(updateUserDto.Password))
-            {
-                // Only update the password if it's provided
-                user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(updateUserDto.Password);
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);  // Returns detailed validation errors
+                }
+
+                var user = await _context.Users.FindAsync(id);
+                if (user == null || !_authorizationHelperService.IsAdminOrOwner(user.Uid))
+                {
+                    return Forbid();
+                }
+
+                // Update only the fields that are provided in the updateUserDto
+                if (!String.IsNullOrEmpty(updateUserDto.Name))
+                {
+                    user.Name = updateUserDto.Name;
+                }
+                if (!String.IsNullOrEmpty(updateUserDto.LastName))
+                {
+                    user.LastName = updateUserDto.LastName;
+                }
+                if (!String.IsNullOrEmpty(updateUserDto.Login))
+                {
+                    user.Login = updateUserDto.Login;
+                }
+                if (!String.IsNullOrEmpty(updateUserDto.Password))
+                {
+                    // Only update the password if it's provided
+                    user.Password = BCryptPasswordEncryptor.Factory.CreateEncryptor().Encrypt(updateUserDto.Password);
+                }
+
+                _context.Entry(user).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!_context.Users.Any(e => e.Uid == user.Uid))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
-                if (!_context.Users.Any(e => e.Uid == user.Uid))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest(e.Message + " " + e.InnerException);
             }
 
             return NoContent();
         }
+
 
         [Authorize] // Only Admins should be able to make users admins
         [HttpPost("{id}/makeAdmin")]
