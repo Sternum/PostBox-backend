@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace ForumSchoolProject.Models;
 
 public partial class ProjektGContext : DbContext
 {
-    public ProjektGContext()
+    private readonly IConfiguration _configuration;
+
+    public ProjektGContext(IConfiguration configuration)
     {
+        _configuration = configuration;
     }
 
-    public ProjektGContext(DbContextOptions<ProjektGContext> options)
+    public ProjektGContext(DbContextOptions<ProjektGContext> options, IConfiguration configuration)
         : base(options)
     {
+        _configuration = configuration;
     }
 
     public virtual DbSet<Post> Posts { get; set; }
@@ -22,9 +27,14 @@ public partial class ProjektGContext : DbContext
     public virtual DbSet<UserGroup> UserGroups { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=projektsan.c7y6w2cc0x8n.eu-north-1.rds.amazonaws.com;Database=ProjektG;User Id=ProjektAPI;Password=Pr0jekt@PI;TrustServerCertificate=true;");
-
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            // Use the connection string from the configuration file
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseSqlServer(connectionString);
+        }
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Post>(entity =>
