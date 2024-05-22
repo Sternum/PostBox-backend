@@ -24,3 +24,5 @@ public class UserGroupDto
     public string AddPosts { get; set; }
     public string EditPost { get; set; }
 }
+
+
