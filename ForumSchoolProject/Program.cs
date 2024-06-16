@@ -38,20 +38,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 			ValidateIssuer = false,
 			ValidateAudience = false
 		};
-	});
+	})
+   // .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+   ;
 
-// Add CORS services
-builder.Services.AddCors(options =>
-{
-	options.AddPolicy("AllowAllOrigins",
-		builder => builder
-			.AllowAnyOrigin() // Allow any origin
-			.AllowAnyHeader()
-			.AllowAnyMethod());
-});
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -86,30 +81,42 @@ builder.Services.AddSwaggerGen(options =>
 		}
 	});
 });
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("AllowSpecificOrigin",
+		builder =>
+		{
+			builder.WithOrigins("http://projektgrupowysan2024.atwebpages.com")
+				   .AllowAnyHeader()
+				   .AllowAnyMethod();
+		});
+});
 
 var app = builder.Build();
 
 // Use CORS middleware
 app.UseCors("AllowAllOrigins");
 
+
+var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
-
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
 	c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
 	c.RoutePrefix = string.Empty; // Set the Swagger UI at the app's root (optional)
 });
-
 app.UseHttpsRedirection();
+app.UseCors("AllowSpecificOrigin");
+
+
 
 app.MapControllers();
 
