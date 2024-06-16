@@ -92,6 +92,11 @@ builder.Services.AddCors(options =>
 		});
 });
 
+var app = builder.Build();
+
+// Use CORS middleware
+app.UseCors("AllowAllOrigins");
+
 
 var app = builder.Build();
 app.UseAuthentication();
