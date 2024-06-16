@@ -90,7 +90,7 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Use CORS middleware
-app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowAllOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
