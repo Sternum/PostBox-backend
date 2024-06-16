@@ -81,6 +81,16 @@ builder.Services.AddSwaggerGen(options =>
 		}
 	});
 });
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("AllowSpecificOrigin",
+		builder =>
+		{
+			builder.WithOrigins("http://projektgrupowysan2024.atwebpages.com")
+				   .AllowAnyHeader()
+				   .AllowAnyMethod();
+		});
+});
 
 
 var app = builder.Build();
@@ -99,6 +109,7 @@ app.UseSwaggerUI(c =>
 	c.RoutePrefix = string.Empty; // Set the Swagger UI at the app's root (optional)
 });
 app.UseHttpsRedirection();
+app.UseCors("AllowSpecificOrigin");
 
 
 
